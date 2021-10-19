@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sbprocessor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sbprocessor
+  template:
+    metadata:
+      labels:
+        app: sbprocessor
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: sbmessageprocessor
+        image: myaksalacontainerregistry.azurecr.io/sbmessageprocessor:v1
