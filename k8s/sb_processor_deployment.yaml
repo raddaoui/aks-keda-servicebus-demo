@@ -14,12 +14,30 @@ spec:
     spec:
       nodeSelector:
         "kubernetes.io/os": linux
+      volumes:
+      - name: config
+        configMap:
+          name: sbprocessor-config
       containers:
       - name: sbmessageprocessor
         image: myaksalacontainerregistry.azurecr.io/sbmessageprocessor:v1
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: config
+          mountPath: "/app/config/config.py"
+          subPath: config.py
+          readOnly: true
         env:
+        - name: CONNECTION_STR
+          valueFrom:
+            secretKeyRef:
+              name: sb-conn-string
+              key: CONNECTION_STR
         - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
-          value: Endpoint=sb://myaks-sb-27.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=kYY8m4mULTEAO4hzEeFMinx5zpXPPM+g+U1V/0Ck2fA=
+          valueFrom:
+            secretKeyRef:
+              name: sb-conn-string
+              key: CONNECTION_STR
         resources:
           limits:
             memory: 800Mi
@@ -27,3 +45,13 @@ spec:
           requests:
             memory: 600Mi
             cpu: 600m
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sbprocessor-config
+data:
+  config.py: |
+    max_wait_time=15
+    TOPIC_NAME = "mytopic"
+    SUBSCRIPTION_NAME = "s1"
