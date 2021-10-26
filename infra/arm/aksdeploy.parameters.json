@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "GEN-UNIQUE"
+        },
+        "dnsPrefix": {
+            "value": "GEN-UNIQUE"
+        },
+        "existingVirtualNetworkName": {
+            "value": "aks-vnet"
+        },
+        "existingVirtualNetworkResourceGroup": {
+            "value": "aks-keda-servicebus-demo-rg3"
+        },
+        "existingSubnetName": {
+            "value": "aks-subnet"
+        },
+        "AAD_TenantID":{
+            "value":"72f988bf-86f1-41af-91ab-2d7cd011db47"
+        }
+    }
+}

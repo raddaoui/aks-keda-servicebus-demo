@@ -17,3 +17,13 @@ spec:
       containers:
       - name: sbmessageprocessor
         image: myaksalacontainerregistry.azurecr.io/sbmessageprocessor:v1
+        env:
+        - name: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+          value: Endpoint=sb://myaks-sb-27.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=kYY8m4mULTEAO4hzEeFMinx5zpXPPM+g+U1V/0Ck2fA=
+        resources:
+          limits:
+            memory: 800Mi
+            cpu: 1
+          requests:
+            memory: 600Mi
+            cpu: 600m

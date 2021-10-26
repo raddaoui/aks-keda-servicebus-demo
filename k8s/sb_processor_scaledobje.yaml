@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: sbprocessor-azure-servicebus-queue-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: sbprocessor
+  maxReplicaCount: 2
+  minReplicaCount: 0
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      topicName: mytopic
+      subscriptionName: s1
+      namespace: myaks-sb-27
+      connectionFromEnv: KEDA_SERVICEBUS_QUEUE_CONNECTIONSTRING
+      messageCount: "5" # default 5
+    authenticationRef:
+        name: azure-servicebus-auth # authenticationRef would need either podIdentity or define a connection parameter

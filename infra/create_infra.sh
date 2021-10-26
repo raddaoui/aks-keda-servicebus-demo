@@ -55,6 +55,13 @@ az aks create \
 --attach-acr $ACR_NAME \
 --yes
 
+# assign youself AKS Azure RBAC cluster admin role
+myuserid=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
+# Get AKS cluster Resource ID
+aks_id=$(az aks show -g $RG -n $CLUSTER_NAME --query id -o tsv)
+# replace AAD-ENTITY-ID with your account email
+az role assignment create --role "Azure Kubernetes Service RBAC Cluster Admin" --assignee $myuserid --scope $aks_id
+
 # create service bus namespace, topic/sub
 az servicebus namespace create --resource-group $RG --name $SB_NAMESPACE --location $LOCATION
 az servicebus topic create --resource-group $RG   --namespace-name $SB_NAMESPACE --name $SB_TOPIC
