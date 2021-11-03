@@ -2,8 +2,20 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "environment": {
+            "value": "dev"
+        },
+        "existingVnetName": {
+            "value": "myvnet"
+        },
+        "existingVnetResourceGroup": {
+            "value": "myvnet-rg"
+        },
+        "existingSubnetName": {
+            "value": "mysubnet"
+        },
         "resourceName": {
-            "value": "myAKSCluster"
+            "value": "myaks-cluster"
         },
         "location": {
             "value": "eastus"
@@ -21,16 +33,13 @@
             "value": true
         },
         "enablePrivateCluster": {
-            "value": true
+            "value": false
         },
         "enableHttpApplicationRouting": {
             "value": false
         },
         "enableAzurePolicy": {
             "value": true
-        },
-        "vnetSubnetID": {
-            "value": "/subscriptions/2d29908b-9e1b-407e-8678-73678dbc8a62/resourceGroups/aks-keda-servicebus-demo-rg3/providers/Microsoft.Network/virtualNetworks/aks-vnet/subnets/aks-subnet"
         },
         "serviceCidr": {
             "value": "10.0.0.0/16"

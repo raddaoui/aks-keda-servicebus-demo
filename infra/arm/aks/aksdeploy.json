@@ -2,6 +2,37 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment name"
+            }
+        },
+        "existingVnetName": {
+            "type": "string",
+            "metadata": {
+              "description": "Name of an existing VNET that will contain this AKS deployment."
+            }
+        },
+        "existingVnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+              "description": "Name of the existing VNET resource group"
+            }
+        },
+        "existingSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Subnet name that will contain the AKS cluster"
+            }
+        },
+        "existingSubnetRoleAssignmentName":{
+            "type": "string",
+            "defaultValue": "[newGuid()]",
+            "metadata": {
+                "description": "Name of the Role Assignment created for the Service Principal in the existing Subnet"
+            }
+        },
         "resourceName": {
             "type": "string",
             "metadata": {
@@ -77,12 +108,6 @@
                 "description": "Boolean flag to turn on and off Azure Policy addon."
             }
         },
-        "vnetSubnetID": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource ID of virtual network subnet used for nodes and/or pods IP assignment."
-            }
-        },
         "serviceCidr": {
             "type": "string",
             "metadata": {
@@ -134,22 +159,19 @@
                 "description": "A CIDR notation IP for Docker bridge."
             }
         },
-        "AAD_TenantID":{
-            "type":"securestring",
+        "AAD_TenantID": {
+            "type": "securestring",
             "metadata": {
                 "description": "The Azure AD Tenant where the cluster will reside"
             }
         }
     },
     "variables": {
-        "vnetSubnetId": "/subscriptions/2d29908b-9e1b-407e-8678-73678dbc8a62/resourceGroups/aks-keda-servicebus-demo-rg3/providers/Microsoft.Network/virtualNetworks/aks-vnet/subnets/aks-subnet"
+        "vnetSubnetId": "[resourceId(parameters('existingVnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]"
     },
     "resources": [
         {
             "apiVersion": "2021-02-01",
-            "dependsOn": [
-                "Microsoft.Network/virtualNetworks/aks-vnet"
-            ],
             "type": "Microsoft.ContainerService/managedClusters",
             "name": "[parameters('resourceName')]",
             "location": "[parameters('location')]",
@@ -213,37 +235,14 @@
                 }
             },
             "tags": {
-                "env": "dev"
+                "env": "[parameters('environment')]"
             }
         },
-        {
-            "apiVersion": "2020-11-01",
-            "name": "aks-vnet",
-            "type": "Microsoft.Network/virtualNetworks",
-            "location": "eastus",
-            "properties": {
-                "subnets": [
-                    {
-                        "name": "aks-subnet",
-                        "id": "/subscriptions/2d29908b-9e1b-407e-8678-73678dbc8a62/resourceGroups/aks-keda-servicebus-demo-rg3/providers/Microsoft.Network/virtualNetworks/aks-vnet/subnets/aks-subnet",
-                        "properties": {
-                            "addressPrefix": "10.240.0.0/16"
-                        }
-                    }
-                ],
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.0.0.0/8"
-                    ]
-                }
-            },
-            "tags": {}
-        },       
         {
             "name": "ClusterSubnetRoleAssignmentDeployment",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2017-05-10",
-            "resourceGroup": "aks-keda-servicebus-demo-rg3",
+            "resourceGroup": "[parameters('existingVnetResourceGroup')]",
             "subscriptionId": "[subscription().subscriptionId]",
             "properties": {
                 "mode": "Incremental",
@@ -256,7 +255,7 @@
                         {
                             "type": "Microsoft.Network/virtualNetworks/subnets/providers/roleAssignments",
                             "apiVersion": "2018-09-01-preview",
-                            "name": "aks-vnet/aks-subnet/Microsoft.Authorization/d6d9434a-78bc-46bb-94ff-1c05b978ade9",
+                            "name": "[concat('/',parameters('existingVnetName'),'/',parameters('existingSubnetName'), '/Microsoft.Authorization/', parameters('existingSubnetRoleAssignmentName'))]",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                                 "principalId": "[reference(parameters('resourceName'),'2021-02-01','Full').identity.principalId]",
@@ -265,16 +264,13 @@
                         }
                     ]
                 }
-            },
-            "dependsOn": [
-                "Microsoft.Network/virtualNetworks/aks-vnet"
-            ]
+            }
         }
     ],
     "outputs": {
         "controlPlaneFQDN": {
             "type": "string",
-            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('resourceName'))).privateFQDN]"
+            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('resourceName'))).FQDN]"
         }
     }
 }
